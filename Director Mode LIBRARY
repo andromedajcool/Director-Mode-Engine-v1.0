@@ -1,0 +1,1010 @@
+// ============================================================
+// DIRECTOR ENGINE v1.0
+// Library Tab
+// ============================================================
+
+// Hidden Director Memory System
+// Used by the Input, Context, and Output tabs.
+// ============================================================
+// CONFIGURATION
+// ============================================================
+
+ /* This section is the MASTER SETTINGS for the Director Engine. Think of it as the engine's control panel. Leave the first line as is 
+ DO NOT rename "DIRECTOR" or remove the { } braces, because the rest of the engine depends on them.*/
+ const DIRECTOR = {
+    VERSION: "1.0", // OPTIONAL "VERSION"
+
+    /*  Should Director Mode automatically start enabled?
+        true  = ON by default (recommended)
+        false = OFF until enabled with a command */ 
+    DEFAULT_ENABLED: true,
+    //Just leave as is... 
+    DEBUG: false,
+
+    /*  MEMORY LIMITS
+    These settings control how much information the Director
+    Engine can remember in each category.
+
+        Example:
+            AI: 150   means the Director can remember up to 150 AI directives.
+    Examples of AI directives:
+       *ai Make every NPC feel unique.
+       *ai Never reveal the murderer.
+       *ai Keep descriptions vivid.
+   Once the limit is reached, the oldest entries are
+   automatically removed to make room for new ones.
+
+   You are free to increase or decrease these numbers.
+   • Larger numbers let the Director remember more
+     information, which can be useful for long adventures.
+   • Smaller numbers keep memory more focused and prevent
+     old information from lingering longer than necessary.
+   Most users won't need to change these values, but they
+   are safe to adjust if you want the Director to remember
+   more or less information.   */
+
+    LIMITS: {
+    // Maximum number of AI directives that can be remembered.
+    AI: 150,
+
+    // Maximum number of Director notes that can be stored for each NPC.
+    NPCS: 50,
+    // Maximum number of recent scene descriptions to remember.
+    SCENES: 5,
+    // Maximum number of active plot points to keep track of.
+    PLOTS: 15,
+    // Maximum number of world rules.
+    // Examples: Magic always has a cost. Dragons cannot lie. Time travel is impossible.
+    RULES: 125,
+
+    // Maximum number of short-term temporary reminders for the AI 
+    // Use to regain consistency with the story.
+    // Example: Remember the hero lost their sword.
+    REMINDERS: 25,
+    // Maximum number of continuity reminders. Long term reminders for the AI 
+    // Helps the AI remember important events from earlier in the story.
+    CONTINUITY: 50, 
+
+    // NOT meant to accumulate.
+    // Maximum number of unanswered player questions for AID to answer ASAP
+    QUESTIONS: 5,
+    // NOT meant to accumulate.
+    // Maximum number of character thought requests for AID to show ASAP
+    THOUGHTS: 5,
+
+    // Maximum number of active writing tones.
+    // Examples: Dark, Humorous, Suspenseful.
+    // TEMPORARY 
+    TONES: 3,
+
+    // Maximum number of active genres.
+    // Examples: Fantasy, Mystery, Horror, Romance.
+    GENRES: 8,
+
+    // Maximum number of things the AI should avoid.
+    // Examples: Don't kill the protagonist. Don't introduce aliens. Don't use modern slang.
+    FORBIDDEN: 50,
+
+    // Maximum number of active goals for each character.
+    // Example: Sheriff • Catch the outlaw • Protect the town • Don't die.
+    GOALS_PER_CHARACTER: 3,
+    // Maximum number of character development categories that can be tracked.
+    CHARACTER_DEVELOPMENT: 10,
+    // Maximum number of development facts stored for each character.
+    DEVELOPMENT_FACTS: 20,
+
+    // Maximum number of foreshadowing hints about future events.
+    FORESHADOW: 25,
+    // Maximum number of unresolved mysteries.
+    MYSTERIES: 20,
+    // Maximum number of hidden secrets.
+    SECRETS: 50,
+    // Maximum number of planned reveals.
+    REVEALS: 50,
+
+    // Maximum number of character arc stages or milestones.
+    CHARACTER_ARCS: 25
+
+    }
+ };
+
+    /* WHY USE LIMITS ? 
+ Without limits, the Director Engine could keep storing information forever.
+ That would eventually:
+ -Slow the script down.
+ -Waste valuable AI context.
+ -Make older information difficult to manage.
+ These limits keep the engine organized and efficient while still allowing a large amount of information to be stored. 
+ ============================================================
+ Feel FREE to edit the LIMIT numbers... 
+    keep the LIMIT Name, the colon (:) and commas (,) unchanged.
+ ============================================================
+ Recommend <250 MAX
+ NONE of these should require over 300 at any time (Though you could) 
+ 
+ Also Setting a limit to 0 doesn't mean "unlimited." It actually means don't store anything. ANY directive would be  discarded immediately.
+ ONLY the built-in rules would remain after initialization..
+ */
+
+// ============================================================
+// BUILT-IN WORLD RULES (B.I.R.)
+// ============================================================
+ // These are PERMANENT rules that Director Mode ALWAYS follows.
+ const BUILT_IN_RULES = [
+    // NO Mind Reading Script !
+    "Anything inside quotation marks is spoken aloud.",
+    "Only words inside quotation marks are heard by other characters.",
+    "Narration is never spoken dialogue.",
+    "Characters cannot read minds or react to thoughts, narration, or information they have not directly perceived.",
+
+    // POV Switch Script !
+    "^ followed by a character's name indicates an immediate POV switch.",
+    "A line containing only [Character Name] also indicates an immediate POV switch.",
+    "After a POV switch, write all narration, thoughts, perceptions, emotions, and internal monologue from that character's perspective until another POV switch occurs.",
+    "When switching POV, immediately adopt the new character's knowledge, personality, memories, and perspective. Do not carry over the previous character's private thoughts or emotions.",
+    "A POV switch changes only the viewpoint. It does not change the timeline, teleport characters, rewind events, or alter established story continuity unless explicitly stated.",
+
+    // AI Dungeon's Normal Bracket Behavior
+    "If square brackets [] contain anything other than only a character's name, treat them using AI Dungeon's normal bracket behavior as hidden guidance or background information for the AI.",
+    "Information inside these brackets is not spoken dialogue, narration, or an event that automatically happens in the story. It becomes part of the story only if it is naturally introduced later.",
+    // F.Y.I. AI Dungeon treats the text inside [] as a private note to the AI.
+    
+ /* You may safely add your own rules here if you'd like.
+  Each rule must be inside quotation marks ("").
+     IMPORTANT:
+     • Put a comma after every rule EXCEPT the last one.
+     • Do NOT type anything AFTER the closing ]; below.  */
+ // Example:
+ // "Magic cannot raise the dead.",
+ // "Dragons are extremely rare.",
+
+    //ADD YOUR OPTIONAL BUILT-IN RULES BELOW
+
+
+
+
+
+ // DO NOT type anything for B.I.R. below this point!
+ ];
+
+ // ============================================================
+ // PERMANENT INSTRUCTIONS (Optional)
+ // ============================================================
+ const PERMANENT_INSTRUCTIONS = [
+ /* This section is OPTIONAL.
+ YOUR PERMANENT writing instructions GO HERE
+ They apply to EVERY response in EVERY adventure.
+ Unlike Director commands, these stay active for every
+ response in every adventure until you edit this section.
+ Good examples:
+    • Writing style
+    • Combat style
+    • Dialogue style
+    • Historical consistency
+    • Storytelling preferences
+    "Use vivid sensory descriptions.",
+    "Keep combat realistic.",
+    "Show, don't tell.",
+        Do NOT put temporary story information here.
+        USE Director commands for TEMPORARY story information. */
+
+    
+
+
+ //STOP!... Do not Edit after the closing ] bracket.
+ ];
+//
+// ============================================================
+// INITIALIZE DIRECTOR STATE
+// ============================================================
+/* NOT ADVISED to edit anything past here unless you know what you're doing.
+
+CHANGING property names or REMOVING entries WILL BREAK Director Mode!!!
+
+IMPORTANT:
+Empty [] and "" values are placeholders.
+They DO NOT mean: "Type your rules here." */
+
+
+/* 
+Inserting PERMANENT_INSTRUCTIONS into Director state (ALREADY DONE FOR YOU)
+type this inbetween the [ ] EXACTLY
+
+...PERMANENT_INSTRUCTIONS
+
+And that's it... BUT ONLY DO SO if you know that is the correct Directive... 
+Otherwise: You are DONE! Congratulations!!!
+You edited the Director Mode Code for your personal scenarios!
+*/
+
+
+//No Edit
+function initDirector() {
+    if (state.director)
+        return;
+    state.director = {
+        enabled: DIRECTOR.DEFAULT_ENABLED,
+
+        // Core Directives
+        ai: [],
+        scene: [],
+        plot: [],
+        //Edit rules: [...BUILT_IN_RULES], by going BACK UP to B.I.R. 
+        //const BUILT_IN_RULES = ["Where you will add those rules"];
+        rules: [...BUILT_IN_RULES],
+
+        //Here is where your Global instructions will go.. If you made any.
+        permanentInstructions: [...PERMANENT_INSTRUCTIONS],
+
+        reminders: [],
+
+        // Story Style
+        tone: [],
+        // These values are filled automatically by Director commands.
+        // Leave them empty.
+        // They change while you play.
+        mood: "",
+        genres: [],
+        forbidden: [],
+
+        // Story Guidance
+        focus: "",
+        foreshadow: [],
+        continuity: [],
+        mysteries: [],
+        reveals: [],
+
+        // Character Data
+        npc: {},
+        goals: {},
+        characterDevelopment: {},
+        characterArcs: {},
+        secrets: {},
+
+        // Utility
+        questions: [],
+        thoughts: []
+
+     //Do NOT edit after this point!
+    };
+}
+// Creates Director Mode's memory immediately when the script loads. 
+initDirector();
+
+
+// ============================================================
+// ============================================================
+// END OF USER CODE
+// ============================================================
+// ============================================================
+
+// The REST is INTERNAL CODE
+// Most users should NOT EDIT ANYTHING BELOW this point
+
+ // ============================================================
+ // GENERIC HELPER FUNCTIONS
+ // ============================================================
+ // ENGINE CODE
+ // These functions are used internally by Director Mode.
+
+ // Removes leading/trailing whitespace.
+ function normalize(text) {
+    if (text === undefined || text === null)
+        return "";
+    return String(text).trim();
+ }
+
+ // True if the value is empty after trimming.
+ function isBlank(text) {
+    return normalize(text).length === 0;
+ }
+
+ // Adds an item to an array while preventing duplicates
+ // and enforcing a maximum size.
+ function pushLimited(array, value, max) {
+    value = normalize(value);
+    if (isBlank(value))
+        return false;
+    if (array.includes(value))
+        return false;
+    array.push(value);
+    while (array.length > max)
+        array.shift();
+    return true;
+ }
+
+ // Removes a matching item from an array.
+ function removeItem(array, value) {
+    value = normalize(value);
+    const index = array.indexOf(value);
+    if (index >= 0) {
+        array.splice(index, 1);
+        return true;}
+    return false;
+ }
+
+ // Clears every element from an array.
+ function clearArray(array) {
+    array.length = 0;
+ }
+
+ // Clears every property from an object.
+ function clearObject(obj) {
+    Object.keys(obj).forEach(key => {
+        delete obj[key];
+    });
+ }
+
+ // Creates an object property if it doesn't exist.
+ function ensureObjectArray(object, key) {
+    key = normalize(key);
+    if (!object[key])
+        object[key] = [];
+    return object[key];
+ }
+
+ // Stores data grouped by name.
+ function addNamedEntry(object, name, value, max) {
+    name = normalize(name);
+    value = normalize(value);
+    if (isBlank(name) || isBlank(value))
+        return false;
+    const list = ensureObjectArray(object, name);
+    return pushLimited(list, value, max);
+ }
+
+ // Returns every key in alphabetical order.
+ function getSortedKeys(object) {
+    return Object.keys(object).sort();
+ }
+
+ // Determines whether a line is a Director command.
+ function isCommand(line) {
+    return normalize(line).startsWith("*");
+ }
+
+ // Returns true if Director Mode is enabled.
+ function directorEnabled() {
+    return state.director.enabled;
+ }
+
+ // Enables Director Mode.
+ function directorOn() {
+    state.director.enabled = true;
+ }
+
+ // Disables Director Mode.
+ function directorOff() {
+    state.director.enabled = false;
+ }
+
+ // Optional debug logging.
+ function directorLog(message) {
+    if (!DIRECTOR.DEBUG)
+        return;
+    console.log("[DIRECTOR] " + message);
+ }
+
+ // ============================================================
+ // CORE DIRECTOR MEMORY FUNCTIONS
+ // ============================================================
+ // INTERNAL ENGINE CODE
+ // These functions store and manage Director Mode's core memory.
+ // Each category corresponds to a Director command that can be
+ // added, updated, or cleared during gameplay.
+ //
+ // Most users SHOULD NOT MODIFY this section.
+
+ // AI DIRECTIVES
+ // --------------------
+ function addAI(text) {
+    return pushLimited(
+        state.director.ai,
+        text,
+        DIRECTOR.LIMITS.AI
+    );
+ }
+ function clearAI() {
+    clearArray(state.director.ai);
+ }
+
+ // SCENES
+ // --------------------
+ function addScene(text) {
+    return pushLimited(
+        state.director.scene,
+        text,
+        DIRECTOR.LIMITS.SCENES
+    );
+ }
+ function clearScenes() {
+    clearArray(state.director.scene);
+ }
+
+ // PLOT
+ // --------------------
+ function addPlot(text) {
+    return pushLimited(
+        state.director.plot,
+        text,
+        DIRECTOR.LIMITS.PLOTS
+    );
+ }
+ function clearPlot() {
+    clearArray(state.director.plot);
+ }
+
+ // WORLD RULES
+ // --------------------
+ function addRule(text) {
+    return pushLimited(
+        state.director.rules,
+        text,
+        DIRECTOR.LIMITS.RULES
+    );
+ }
+ function clearRules() {
+    clearArray(state.director.rules);
+    BUILT_IN_RULES.forEach(rule => {
+        state.director.rules.push(rule);
+    });
+ }
+
+ // REMINDERS
+ // --------------------
+ function addReminder(text) {
+    return pushLimited(
+        state.director.reminders,
+        text,
+        DIRECTOR.LIMITS.REMINDERS
+    );
+ }
+ function clearReminders() {
+    clearArray(state.director.reminders);
+ }
+
+ // QUESTIONS
+ // --------------------
+ function addQuestion(text) {
+    return pushLimited(
+        state.director.questions,
+        text,
+        DIRECTOR.LIMITS.QUESTIONS
+    );
+ }
+ function clearQuestions() {
+    clearArray(state.director.questions);
+ }
+
+ // THOUGHT REQUESTS
+ // --------------------
+ function addThought(character) {
+    return pushLimited(
+        state.director.thoughts,
+        character,
+        DIRECTOR.LIMITS.THOUGHTS
+    );
+ }
+ function clearThoughts() {
+    clearArray(state.director.thoughts);
+ }
+
+ // TONES
+ // --------------------
+ function addTone(text) {
+    return pushLimited(
+        state.director.tone,
+        text,
+        DIRECTOR.LIMITS.TONES
+    );
+ }
+ function clearTone() {
+    clearArray(state.director.tone);
+ }
+
+
+ // MOOD
+ // --------------------
+ function setMood(text) {
+    state.director.mood = normalize(text);
+ }
+ function clearMood() {
+    state.director.mood = "";
+ }
+
+ // GENRES
+ // --------------------
+ function addGenre(text) {
+    return pushLimited(
+        state.director.genres,
+        text,
+        DIRECTOR.LIMITS.GENRES
+    );
+ }
+ function clearGenres() {
+    clearArray(state.director.genres);
+ }
+
+ // FORBIDDEN
+ // --------------------
+ function addForbidden(text) {
+    return pushLimited(
+        state.director.forbidden,
+        text,
+        DIRECTOR.LIMITS.FORBIDDEN
+    );
+ }
+ function clearForbidden() {
+    clearArray(state.director.forbidden);
+ }
+
+ // ============================================================
+ // ADVANCED MEMORY FUNCTIONS
+ // ============================================================
+ // INTERNAL ENGINE CODE
+ // These functions MANAGE Director Mode's advanced story memory.
+ // They store information such as:
+ // • NPC-specific instructions
+ // • Character goals
+ // • Character development
+ // • Character story arcs
+ // • Character secrets
+ // • Story focus
+ // • Foreshadowing
+ // • Continuity reminders
+ // • Unresolved mysteries
+ // • Planned reveals
+ // Most users SHOULD NOT MODIFY anything in this section.
+
+ // --------------------
+ // NPC DIRECTIVES
+ // --------------------
+ function addNPCDirective(name, text) {
+    return addNamedEntry(
+        state.director.npc,
+        name,
+        text,
+        DIRECTOR.LIMITS.NPCS
+    );
+ }
+ function clearNPC(name) {
+    if (!name) {
+        clearObject(state.director.npc);
+        return;
+    }
+    delete state.director.npc[normalize(name)];
+ }
+
+ // CHARACTER GOALS
+ // --------------------
+ function addGoal(character, goal) {
+    return addNamedEntry(
+        state.director.goals,
+        character,
+        goal,
+        DIRECTOR.LIMITS.GOALS_PER_CHARACTER
+    );
+ }
+
+ function clearGoals(character) {
+    if (!character) {
+        clearObject(state.director.goals);
+        return;
+    }
+    delete state.director.goals[normalize(character)];
+ }
+
+ // CHARACTER DEVELOPMENT
+ // --------------------
+ function addCharacterDevelopment(character, fact) {
+    return addNamedEntry(
+        state.director.characterDevelopment,
+        character,
+        fact,
+        DIRECTOR.LIMITS.DEVELOPMENT_FACTS
+    );
+ }
+ function clearCharacterDevelopment(character) {
+    if (!character) {
+        clearObject(state.director.characterDevelopment);
+        return;
+    }
+    delete state.director.characterDevelopment[
+        normalize(character)
+    ];
+ }
+
+ // CHARACTER ARCS
+ // --------------------
+ function addCharacterArc(character, stage) {
+    return addNamedEntry(
+        state.director.characterArcs,
+        character,
+        stage,
+        DIRECTOR.LIMITS.CHARACTER_ARCS
+    );
+ }
+ function clearCharacterArcs(character) {
+    if (!character) {
+        clearObject(state.director.characterArcs);
+        return;
+    }
+    delete state.director.characterArcs[
+        normalize(character)
+    ];
+ }
+
+ // SECRETS
+ // --------------------
+ function addSecret(character, secret) {
+    return addNamedEntry(
+        state.director.secrets,
+        character,
+        secret,
+        DIRECTOR.LIMITS.SECRETS
+    );
+ }
+ function clearSecrets(character) {
+    if (!character) {
+        clearObject(state.director.secrets);
+        return;
+    }
+    delete state.director.secrets[
+        normalize(character)
+    ];
+ }
+
+ // STORY FOCUS
+ // --------------------
+ function setFocus(text) {
+    state.director.focus = normalize(text);
+ }
+ function clearFocus() {
+    state.director.focus = "";
+ }
+
+ // FORESHADOWING
+ // --------------------
+ function addForeshadow(text) {
+    return pushLimited(
+        state.director.foreshadow,
+        text,
+        DIRECTOR.LIMITS.FORESHADOW
+    );
+ }
+ function clearForeshadow() {
+    clearArray(state.director.foreshadow);
+ }
+
+ // CONTINUITY
+ // --------------------
+ function addContinuity(text) {
+    return pushLimited(
+        state.director.continuity,
+        text,
+        DIRECTOR.LIMITS.CONTINUITY
+    );
+ }
+ function clearContinuity() {
+    clearArray(state.director.continuity);
+ }
+
+ // MYSTERIES
+ // --------------------
+ function addMystery(text) {
+    return pushLimited(
+        state.director.mysteries,
+        text,
+        DIRECTOR.LIMITS.MYSTERIES
+    );
+ }
+ function clearMysteries() {
+    clearArray(state.director.mysteries);
+ }
+
+ // REVEAL QUEUE
+ // --------------------
+ function addReveal(text) {
+    return pushLimited(
+        state.director.reveals,
+        text,
+        DIRECTOR.LIMITS.REVEALS
+    );
+ }
+ function clearReveals() {
+    clearArray(state.director.reveals);
+ }
+
+ // ============================================================
+ // DIRECTOR CONTEXT BUILDER
+ // ============================================================
+ // INTERNAL ENGINE CODE
+ // Builds the hidden Director Mode instructions that are sent
+ // to the AI before every response.
+ // Empty sections are automatically omitted to save context.
+ //
+ // Most users SHOULD NOT MODIFY this section.
+
+ function buildDirectorContext() {
+    if (!directorEnabled())
+        return "";
+    const out = [];
+
+    out.push("=================================");
+    out.push("DIRECTOR MODE");
+    out.push("=================================");
+    out.push("");
+
+    out.push("The following information is");
+    out.push("hidden Director guidance.");
+    out.push("");
+
+    out.push("It is NEVER:");
+    out.push("- Player dialogue");
+    out.push("- Player actions");
+    out.push("- NPC dialogue");
+    out.push("- Story narration");
+    out.push("");
+
+    out.push("Use these instructions when");
+    out.push("generating the next response.");
+    out.push("");
+
+    // AI DIRECTIVES
+    // ------------------------------------------------
+    if (state.director.ai.length) {
+        out.push("AI DIRECTIVES");
+        state.director.ai.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // WRITING TONE
+    // ------------------------------------------------
+    if (state.director.tone.length) {
+        out.push("WRITING TONE");
+        state.director.tone.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // SCENE MOOD
+    // ------------------------------------------------
+    if (state.director.mood) {
+        out.push("CURRENT MOOD");
+        out.push("- " + state.director.mood);
+        out.push("");
+    }
+
+    // GENRES
+    // ------------------------------------------------
+    if (state.director.genres.length) {
+        out.push("GENRES");
+        state.director.genres.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // CURRENT FOCUS
+    // ------------------------------------------------
+    if (state.director.focus) {
+        out.push("CURRENT FOCUS");
+        out.push("- " + state.director.focus);
+        out.push("");
+    }
+
+    // SCENE
+    // ------------------------------------------------
+    if (state.director.scene.length) {
+        out.push("CURRENT SCENE");
+        state.director.scene.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // PLOT
+    // ------------------------------------------------
+    if (state.director.plot.length) {
+        out.push("PLOT");
+        state.director.plot.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // WORLD RULES
+    // ------------------------------------------------
+    if (state.director.rules.length) {
+        out.push("WORLD RULES");
+        state.director.rules.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // PERMANENT INSTRUCTIONS
+    // ------------------------------------------------
+    // GASP... What's this? It's your Permanent instructions!
+    // User-defined instructions that apply to every response.
+    if (state.director.permanentInstructions.length) {
+        out.push("PERMANENT INSTRUCTIONS");
+        state.director.permanentInstructions.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // FORBIDDEN
+    // ------------------------------------------------
+
+    if (state.director.forbidden.length) {
+        out.push("FORBIDDEN");
+        state.director.forbidden.forEach(item => {
+        out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // NPC DIRECTIVES
+    // ------------------------------------------------
+    const npcNames = getSortedKeys(state.director.npc);
+    if (npcNames.length) {
+        out.push("NPC DIRECTIVES");
+        npcNames.forEach(name => {
+            out.push(name + ":");
+            state.director.npc[name].forEach(item => {
+                out.push("- " + item);
+            });
+            out.push("");
+        });
+    }
+
+    // CHARACTER GOALS
+    // ------------------------------------------------
+    const goalCharacters = getSortedKeys(state.director.goals);
+    if (goalCharacters.length) {
+        out.push("CHARACTER GOALS");
+        goalCharacters.forEach(name => {
+            out.push(name + ":");
+            state.director.goals[name].forEach(goal => {
+                out.push("- " + goal);
+            });
+            out.push("");
+        });
+    }
+
+    // CHARACTER DEVELOPMENT
+    // ------------------------------------------------
+    const developmentCharacters =
+        getSortedKeys(state.director.characterDevelopment);
+    if (developmentCharacters.length) {
+        out.push("CHARACTER DEVELOPMENT");
+        developmentCharacters.forEach(name => {
+            out.push(name + ":");
+            state.director.characterDevelopment[name].forEach(item => {
+                out.push("- " + item);
+            });
+            out.push("");
+        });
+    }
+
+    // CHARACTER ARCS
+    // ------------------------------------------------
+    const arcCharacters =
+        getSortedKeys(state.director.characterArcs);
+    if (arcCharacters.length) {
+        out.push("CHARACTER ARCS");
+        arcCharacters.forEach(name => {
+            out.push(name + ":");
+            state.director.characterArcs[name].forEach(stage => {
+                out.push("- " + stage);
+            });
+            out.push("");
+        });
+    }
+
+    // SECRET KNOWLEDGE
+    // ------------------------------------------------
+    const secretCharacters =
+        getSortedKeys(state.director.secrets);
+    if (secretCharacters.length) {
+        out.push("SECRET KNOWLEDGE");
+        secretCharacters.forEach(name => {
+            out.push(name + ":");
+            state.director.secrets[name].forEach(secret => {
+                out.push("- " + secret);
+            });
+            out.push("");
+        });
+    }
+
+    // FORESHADOWING
+    // ------------------------------------------------
+    if (state.director.foreshadow.length) {
+        out.push("FORESHADOWING");
+        state.director.foreshadow.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // CONTINUITY
+    // ------------------------------------------------
+    if (state.director.continuity.length) {
+        out.push("CONTINUITY");
+        state.director.continuity.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // MYSTERIES
+    // ------------------------------------------------
+    if (state.director.mysteries.length) {
+        out.push("UNRESOLVED MYSTERIES");
+        state.director.mysteries.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // REVEAL QUEUE
+    // ------------------------------------------------
+    if (state.director.reveals.length) {
+        out.push("REVEAL QUEUE");
+        state.director.reveals.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // REMINDERS
+    // ------------------------------------------------
+    if (state.director.reminders.length) {
+        out.push("REMINDERS");
+        state.director.reminders.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // QUESTIONS
+    // ------------------------------------------------
+    if (state.director.questions.length) {
+        out.push("PLAYER QUESTIONS");
+        state.director.questions.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    // THOUGHT REQUESTS
+    // ------------------------------------------------
+    if (state.director.thoughts.length) {
+        out.push("CHARACTER THOUGHT REQUESTS");
+        state.director.thoughts.forEach(item => {
+            out.push("- " + item);
+        });
+        out.push("");
+    }
+
+    
+    return out.join("\n");
+ }
+
+// ------------------------------------------------
+// CREDIT
+// @Andromeda242526
+// 2026
+// Director Mode Script
+// ------------------------------------------------
+//
+// ============================================================
+// PUBLIC API / FUTURE UTILITIES
+// ============================================================
+// Add future helper functions below.
+// This section is intentionally left open for expansion. 

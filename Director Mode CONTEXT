@@ -21,21 +21,18 @@ const modifier = (text) => {
     };
 };
 // Don't modify this part
-modifier(text);  
+modifier(text);
 
-
-
-/*  OPTIONAL
-By default, Dialogue Rules are only active while Director Mode is enabled.
-If you want Dialogue Rules to ALWAYS be active—even when Director Mode is OFF—
-1. Delete EVERYTHING above this comment.
-2. Remove this opening comment marker /`*   
-3. Remove the closing comment marker *`/ 
-The closing comment marker is on the LAST LINE of this tab    
-
+//  OPTIONAL
+// By default, Dialogue Rules are only active while Director Mode is enabled.
+// If you want Dialogue Rules to ALWAYS be active—even when Director Mode is OFF—
+// 1. Delete EVERYTHING above this comment.
+// 2. Remove this opening comment marker /`*   
+// 3. Remove the closing comment marker *`/ 
+// The closing comment marker is on the LAST LINE of this tab    
 // The code below will then become your active Context tab.
 
-
+/*
 // ============================================================
 // Director Engine FORCE Dialoge Rules!
 // Context Tab

@@ -1,0 +1,35 @@
+// ============================================================
+// Director Engine v1.0
+// Output Tab
+// ============================================================
+//
+// This tab receives the AI's response immediately before it is
+// shown to the player.
+//
+// Director Engine currently leaves the response unchanged.
+//
+// Future features could include:
+//
+// • Director status messages
+// • *info reports
+// • Command confirmations
+// • Debug logging
+// • Automatic cleanup
+// • Statistics
+// • Turn counters
+// • Timestamp insertion
+// • Response validation
+// • Text formatting
+//
+// ============================================================
+const modifier = (text) => {
+    if (typeof initDirector === "function") {
+        initDirector();
+    }
+    return {
+        text
+    };
+};
+
+// Don't modify this part
+modifier(text);

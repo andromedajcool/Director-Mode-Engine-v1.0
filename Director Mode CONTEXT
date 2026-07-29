@@ -2,44 +2,28 @@
 // Director Engine v1.0
 // Context Tab
 // ============================================================
+//
+// OPTIONAL
+// (RECOMMENDED)
+// Set to true to ALWAYS include the No Mind Reading / Dialogue
+// Rules, even when Director Mode is OFF. 
+//
+// Set to false to use ONLY the rules provided by Director Mode.
+//
+const ALWAYS_USE_DIALOGUE_RULES = true;
+
+// ============================================================
+
 const modifier = (text) => {
+
     let finalText = "";
-    if (typeof initDirector === "function") {
-        initDirector();
-        if (directorEnabled()) {
-            finalText = buildDirectorContext();
-        }
-    }
 
-    if (finalText.length) {
-        finalText += "\n\n";
-    }
-    finalText += text;
+    // Optional Dialogue Rules
+    if (ALWAYS_USE_DIALOGUE_RULES) {
 
-    return {
-        text: finalText
-    };
-};
-// Don't modify this part
-modifier(text);
-
-//  OPTIONAL
-// By default, Dialogue Rules are only active while Director Mode is enabled.
-// If you want Dialogue Rules to ALWAYS be active—even when Director Mode is OFF—
-// 1. Delete EVERYTHING above this comment.
-// 2. Remove this opening comment marker /`*   
-// 3. Remove the closing comment marker *`/ 
-// The closing comment marker is on the LAST LINE of this tab    
-// The code below will then become your active Context tab.
-
-/*
-// ============================================================
-// Director Engine FORCE Dialoge Rules!
-// Context Tab
-// ============================================================
-const modifier = (text) => {
-  const rules = `
+        finalText += `
 DIALOGUE RULES
+
 • Anything inside quotation marks ("") is spoken aloud.
 • Only words inside quotation marks are heard by other characters.
 • Anything outside quotation marks is narration, description, or internal thoughts.
@@ -53,24 +37,41 @@ DIALOGUE RULES
   - Information they already logically know.
 • Never have characters answer or react to unspoken thoughts.
 • Never treat narration as spoken dialogue.
-`;
-let directorRules = "";
-if (typeof initDirector === "function") {
-    initDirector();
-    if (directorEnabled()) {
-        directorRules = buildDirectorContext();
-    }
-}
-let finalText = rules;
-if (directorRules.length) {
-    finalText += "\n\n" + directorRules;
-}
-finalText += "\n\n" + text;
-return {
-    text: finalText
-};
-}
-// Don't modify this part
-modifier(text); 
 
-Remove THIS LINE... Keeping modifier(text); as the LAST LINE */
+`;
+    }
+
+    // Director Engine
+    if (typeof initDirector === "function") {
+
+        initDirector();
+
+        if (directorEnabled()) {
+
+            const directorText = buildDirectorContext();
+
+            if (directorText) {
+
+                if (finalText.length) {
+                    finalText += "\n";
+                }
+
+                finalText += directorText;
+            }
+        }
+    }
+
+    if (finalText.length) {
+        finalText += "\n\n";
+    }
+
+    finalText += text;
+
+    return {
+        text: finalText
+    };
+
+};
+
+// Don't modify this part
+modifier(text);

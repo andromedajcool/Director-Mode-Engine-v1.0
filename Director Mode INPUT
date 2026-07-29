@@ -1,25 +1,42 @@
 // ============================================================
 // Director Engine v1.0
-// Input Tab 
+// Input Tab
 // ============================================================
 // Handles Director commands entered by the player.
-
 // ============================================================
+
 const modifier = (text) => {
-    initDirector();
+
+    if (typeof initDirector === "function") {
+        initDirector();
+    }
+
     const output = [];
     const lines = text.split("\n");
+
+    function parseNameValue(value) {
+        const split = value.indexOf(":");
+        if (split === -1) return null;
+
+        return {
+            name: value.substring(0, split).trim(),
+            value: value.substring(split + 1).trim()
+        };
+    }
+
     for (let line of lines) {
+
         const trimmed = line.trim();
-        // Empty line
+
         if (!trimmed) {
             output.push(line);
             continue;
         }
 
-        // ----------------------------
+        // =====================================================
         // Director Toggle
-        // ----------------------------
+        // =====================================================
+
         if (trimmed.toLowerCase() === "*director on") {
             directorOn();
             continue;
@@ -30,95 +47,160 @@ const modifier = (text) => {
             continue;
         }
 
-        // Ignore commands when OFF
+        // Ignore Director commands while disabled.
         if (!directorEnabled()) {
-
             output.push(line);
             continue;
-
         }
 
-        // ----------------------------
-        // AI
-        // ----------------------------
+        // =====================================================
+        // Core Commands
+        // =====================================================
+
         if (trimmed.startsWith("*ai ")) {
             addAI(trimmed.substring(4));
             continue;
         }
-        // ----------------------------
-        // Scene
-        // ----------------------------
+
         if (trimmed.startsWith("*scene ")) {
             addScene(trimmed.substring(7));
             continue;
         }
-        // ----------------------------
-        // Plot
-        // ----------------------------
+
         if (trimmed.startsWith("*plot ")) {
             addPlot(trimmed.substring(6));
             continue;
         }
-        // ----------------------------
-        // Rule
-        // ----------------------------
+
         if (trimmed.startsWith("*rule ")) {
             addRule(trimmed.substring(6));
             continue;
         }
-        // ----------------------------
-        // Reminder
-        // ----------------------------
+
         if (trimmed.startsWith("*reminder ")) {
-            addReminder(trimmed.substring(11));
+            addReminder(trimmed.substring(10).trim());
             continue;
         }
-        // ----------------------------
-        // Question
-        // ----------------------------
+
         if (trimmed.startsWith("*question ")) {
-            addQuestion(trimmed.substring(10));
-            continue;
-        }
-        // ----------------------------
-        // Thoughts
-        // ----------------------------
-        if (trimmed.startsWith("*thoughts ")) {
-            addThoughtRequest(trimmed.substring(10));
+            addQuestion(trimmed.substring(10).trim());
             continue;
         }
 
-        // ----------------------------
-        // NPC
-        // Format:
-        // *npc Sheriff: Secretly corrupt
-        // ----------------------------
+        if (trimmed.startsWith("*thought ")) {
+            addThought(trimmed.substring(9).trim());
+            continue;
+        }
+
+        // =====================================================
+        // Story Style
+        // =====================================================
+
+        if (trimmed.startsWith("*tone ")) {
+            addTone(trimmed.substring(6));
+            continue;
+        }
+
+        if (trimmed.startsWith("*mood ")) {
+            setMood(trimmed.substring(6));
+            continue;
+        }
+
+        if (trimmed.startsWith("*genre ")) {
+            addGenre(trimmed.substring(7));
+            continue;
+        }
+
+        if (trimmed.startsWith("*focus ")) {
+            setFocus(trimmed.substring(7));
+            continue;
+        }
+
+        if (trimmed.startsWith("*forbidden ")) {
+            addForbidden(trimmed.substring(11));
+            continue;
+        }
+
+        // =====================================================
+        // Story Planning
+        // =====================================================
+
+        if (trimmed.startsWith("*foreshadow ")) {
+            addForeshadow(trimmed.substring(13));
+            continue;
+        }
+
+        if (trimmed.startsWith("*continuity ")) {
+            addContinuity(trimmed.substring(12));
+            continue;
+        }
+
+        if (trimmed.startsWith("*mystery ")) {
+            addMystery(trimmed.substring(9));
+            continue;
+        }
+
+        if (trimmed.startsWith("*reveal ")) {
+            addReveal(trimmed.substring(8));
+            continue;
+        }
+
+        // =====================================================
+        // Character Commands
+        // =====================================================
+
         if (trimmed.startsWith("*npc ")) {
-            const value = trimmed.substring(5);
-            const split = value.indexOf(":");
-            if (split !== -1) {
-                const name = value.substring(0, split).trim();
-                const directive =
-                    value.substring(split + 1).trim();
-                addNPCDirective(name, directive);
+
+            const result = parseNameValue(trimmed.substring(5));
+
+            if (result) {
+                addNPCDirective(result.name, result.value);
             }
+
             continue;
         }
 
-        // ----------------------------
-        // Character
-        // Format:
-        // *character Sheriff: Slowly becomes honest
-        // ----------------------------
         if (trimmed.startsWith("*character ")) {
-            const value = trimmed.substring(11);
-            const split = value.indexOf(":");
-            if (split !== -1) {
-                const name = value.substring(0, split).trim();
-                const directive =
-                    value.substring(split + 1).trim();
-                addCharacterDevelopment(name, directive);
+
+            const result = parseNameValue(trimmed.substring(11));
+
+            if (result) {
+                addCharacterDevelopment(result.name, result.value);
             }
+
+            continue;
+        }
+
+        if (trimmed.startsWith("*goal ")) {
+
+            const result = parseNameValue(trimmed.substring(6));
+
+            if (result) {
+                addGoal(result.name, result.value);
+            }
+
+            continue;
+        }
+
+        if (trimmed.startsWith("*secret ")) {
+
+            const result = parseNameValue(trimmed.substring(8));
+
+            if (result) {
+                addSecret(result.name, result.value);
+            }
+
+            continue;
+        }
+
+        if (trimmed.startsWith("*arc ")) {
+
+            const result = parseNameValue(trimmed.substring(5));
+
+            if (result) {
+                addCharacterArc(result.name, result.value);
+            }
+
             continue;
         }
 
@@ -131,5 +213,6 @@ const modifier = (text) => {
     };
 
 };
-// Don't modify this part 
+
+// Don't modify this part
 modifier(text);

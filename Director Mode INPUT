@@ -1,0 +1,135 @@
+// ============================================================
+// Director Engine v1.0
+// Input Tab 
+// ============================================================
+// Handles Director commands entered by the player.
+
+// ============================================================
+const modifier = (text) => {
+    initDirector();
+    const output = [];
+    const lines = text.split("\n");
+    for (let line of lines) {
+        const trimmed = line.trim();
+        // Empty line
+        if (!trimmed) {
+            output.push(line);
+            continue;
+        }
+
+        // ----------------------------
+        // Director Toggle
+        // ----------------------------
+        if (trimmed.toLowerCase() === "*director on") {
+            directorOn();
+            continue;
+        }
+
+        if (trimmed.toLowerCase() === "*director off") {
+            directorOff();
+            continue;
+        }
+
+        // Ignore commands when OFF
+        if (!directorEnabled()) {
+
+            output.push(line);
+            continue;
+
+        }
+
+        // ----------------------------
+        // AI
+        // ----------------------------
+        if (trimmed.startsWith("*ai ")) {
+            addAI(trimmed.substring(4));
+            continue;
+        }
+        // ----------------------------
+        // Scene
+        // ----------------------------
+        if (trimmed.startsWith("*scene ")) {
+            addScene(trimmed.substring(7));
+            continue;
+        }
+        // ----------------------------
+        // Plot
+        // ----------------------------
+        if (trimmed.startsWith("*plot ")) {
+            addPlot(trimmed.substring(6));
+            continue;
+        }
+        // ----------------------------
+        // Rule
+        // ----------------------------
+        if (trimmed.startsWith("*rule ")) {
+            addRule(trimmed.substring(6));
+            continue;
+        }
+        // ----------------------------
+        // Reminder
+        // ----------------------------
+        if (trimmed.startsWith("*reminder ")) {
+            addReminder(trimmed.substring(11));
+            continue;
+        }
+        // ----------------------------
+        // Question
+        // ----------------------------
+        if (trimmed.startsWith("*question ")) {
+            addQuestion(trimmed.substring(10));
+            continue;
+        }
+        // ----------------------------
+        // Thoughts
+        // ----------------------------
+        if (trimmed.startsWith("*thoughts ")) {
+            addThoughtRequest(trimmed.substring(10));
+            continue;
+        }
+
+        // ----------------------------
+        // NPC
+        // Format:
+        // *npc Sheriff: Secretly corrupt
+        // ----------------------------
+        if (trimmed.startsWith("*npc ")) {
+            const value = trimmed.substring(5);
+            const split = value.indexOf(":");
+            if (split !== -1) {
+                const name = value.substring(0, split).trim();
+                const directive =
+                    value.substring(split + 1).trim();
+                addNPCDirective(name, directive);
+            }
+            continue;
+        }
+
+        // ----------------------------
+        // Character
+        // Format:
+        // *character Sheriff: Slowly becomes honest
+        // ----------------------------
+        if (trimmed.startsWith("*character ")) {
+            const value = trimmed.substring(11);
+            const split = value.indexOf(":");
+            if (split !== -1) {
+                const name = value.substring(0, split).trim();
+                const directive =
+                    value.substring(split + 1).trim();
+                addCharacterDevelopment(name, directive);
+            }
+            continue;
+        }
+
+        // Normal player input
+        output.push(line);
+    }
+
+    return {
+        text: output.join("\n")
+    };
+
+};
+// Don't modify this part 
+modifier(text);
